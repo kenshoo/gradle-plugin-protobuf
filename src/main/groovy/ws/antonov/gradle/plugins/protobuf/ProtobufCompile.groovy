@@ -26,12 +26,7 @@ public class ProtobufCompile extends AbstractCompile {
     }
 
     protected void compile() {
-        //println "Compiling protos..."
-        //println "${sourceSets.main.java.srcDirs}"
-        //println project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).protobuf.class
         getDestinationDir().mkdir()
-        def dirs = CollectionUtils.join(" -I", getSource().srcDirs)
-        logger.debug "ProtobufCompile using directories ${dirs}"
         logger.debug "ProtobufCompile using files ${getSource().getFiles()}"
         def cmd = [ getProtocPath() ]
         cmd.addAll(getSource().srcDirs*.path.collect {"-I${it}"})

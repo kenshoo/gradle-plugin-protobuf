@@ -13,7 +13,7 @@ apply plugin: 'groovy'
 apply plugin: 'maven'
 apply plugin: 'git'
 
-apply plugin: 'signing'
+
 
 group = 'ws.antonov.gradle.plugins'
 version = '0.8'
@@ -45,7 +45,7 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.3'
+    gradleVersion = '1.4'
 }
 
 project.ext.set("signing.secretKeyRingFile", new File("${System.properties['user.home']}/.gnupg/secring.gpg"))
@@ -65,52 +65,5 @@ artifacts {
      archives groovydocJar
 }
 
-signing {
-//     required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
-     sign configurations.archives
-}
 
-uploadArchives {
-  repositories {
-    mavenDeployer {
-      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-      repository(url: "http://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-      //repository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-        authentication(userName: System.getProperty('nexusUser'), password: System.getProperty('nexusPassword'))
-      }
-      pom.project {
-        name project.name
-        description "Gradle build plugin to handle Protocol Buffers automated code generation and compilation"
-        url "https://github.com/aantono/gradle-plugin-protobuf"
-        licenses {
-          license {
-            name "New BSD License"
-            url "http://www.opensource.org/licenses/bsd-license.php"
-          }
-        }
-        developers {
-          developer {
-            id "aantono"
-            name "Alex Antonov"
-            email "alex@antonov.ws"
-          }
-          developer {
-            id "valkolovos"
-            name "Val Kolovos"
-            email "valkolovos@yahoo.com"
-          }
-          developer {
-            id "mleinartas"
-            name "Michael Leinartas"
-            email "mleinartas@gmail.com"
-          }
-        }
-        scm {
-          connection "scm:git:git://github.com/aantono/gradle-plugin-protobuf.git"
-          developerConnection "scm:git:git@github.com:aantono/gradle-plugin-protobuf.git"
-          url "https://github.com/aantono/gradle-plugin-protobuf"
-        }
-      }
-    }
-  }
-}
+

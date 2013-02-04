@@ -13,10 +13,17 @@ class ProtobufPlugin implements Plugin<Project> {
         project.apply plugin: 'java'
 
         project.convention.plugins.protobuf = new ProtobufConvention(project);
+
+
+        def binaryDep = new BinaryDeps()
+        binaryDep.applyBinary(project)
+
         project.sourceSets.all { SourceSet sourceSet ->
             def generateJavaTaskName = sourceSet.getTaskName('generate', 'proto')
             ProtobufCompile generateJavaTask = project.tasks.add(generateJavaTaskName, ProtobufCompile)
             configureForSourceSet project, sourceSet, generateJavaTask
+
+            generateJavaTask.dependsOn(project.getTasksByName('setupBinary',false))
             
             def protobufConfigName = (sourceSet.getName().equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "protobuf" : sourceSet.getName() + "Protobuf")
             project.configurations.add(protobufConfigName) {
