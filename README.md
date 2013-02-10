@@ -1,6 +1,8 @@
 # Protobuf Plugin for Gradle
 The Protobuf plugin provides protobuf compilation to your project.
 
+No need to install protobuf it will download from our repo!
+
 ## Usage
 To use the protobuf plugin, include in your build script:
 
@@ -12,12 +14,9 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'ws.antonov.gradle.plugins:gradle-plugin-protobuf:0.6'
+        classpath 'ws.antonov.gradle.plugins:gradle-plugin-protobuf:0.8'
     }
 }
-
-// Optional - defaults to 'protoc' searching through your PATH
-protocPath = '/usr/local/bin/protoc'
 
 dependencies {
     // If you have your protos archived in a tar file, you can specify that as a dependency
