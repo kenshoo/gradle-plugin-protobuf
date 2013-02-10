@@ -16,7 +16,7 @@ apply plugin: 'git'
 
 
 group = 'ws.antonov.gradle.plugins'
-version = '0.8'
+version = '1.0.1'
 
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
@@ -65,5 +65,25 @@ artifacts {
      archives groovydocJar
 }
 
+idea.project.ipr {
+    withXml { provider ->
+        provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
+    }
+}
+
+
+uploadArchives {
+        def password = project.hasProperty('password') ? "$password" : ''
+        repositories {
+            mavenDeployer {
+                repository(url: "https://kenshoo.artifactoryonline.com/kenshoo/simple/libs-releases-local/") {
+                    authentication(userName: "deployer", password: password)
+                }
+                snapshotRepository(url: "https://kenshoo.artifactoryonline.com/kenshoo/simple/libs-snapshots-local/") {
+                    authentication(userName: "deployer", password: password)
+                }
+            }
+        }
+    }
 
 

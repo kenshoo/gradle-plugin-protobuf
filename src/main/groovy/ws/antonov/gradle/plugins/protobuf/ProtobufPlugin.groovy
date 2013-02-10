@@ -76,6 +76,7 @@ class ProtobufPlugin implements Plugin<Project> {
             String compileJavaTaskName = sourceSet.getCompileTaskName("java");
             Task compileJavaTask = project.tasks.getByName(compileJavaTaskName);
             compileJavaTask.dependsOn(generateJavaTask)
+            project.getTasksByName('cleanIdea',false).each {task -> task.dependsOn(generateJavaTask)}
         }
     }
     
