@@ -4,7 +4,7 @@ import org.gradle.api.tasks.Sync
 
 class BinaryDeps {
 
-    def isLinux = (System.getProperty('os.name').contains('Linux'))
+    def isLinux = (System.getProperty('os.name').contains('Windows')) == false
 
     def executable = {project ->
         def dep = project.configurations.binary.allDependencies.toArray()[0]
