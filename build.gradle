@@ -16,7 +16,7 @@ apply plugin: 'git'
 
 
 group = 'ws.antonov.gradle.plugins'
-version = '1.0.1'
+version = '1.0.3'
 
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 

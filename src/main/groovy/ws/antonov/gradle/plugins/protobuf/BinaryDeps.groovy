@@ -6,6 +6,8 @@ class BinaryDeps {
 
     def isLinux = (System.getProperty('os.name').contains('Windows')) == false
 
+    def isFedora = (System.getProperty('os.version').contains('fc19')) == true
+
     def executable = {project ->
         def dep = project.configurations.binary.allDependencies.toArray()[0]
         "${dep.name}-${dep.version}".toString()
@@ -33,7 +35,11 @@ class BinaryDeps {
 
         project.dependencies {
             if(isLinux){
-                binary group:'com.google', name:'protoc', version:'2.4.1', ext:'bin'
+                if(!isFedora){
+                    binary group:'com.google', name:'protoc', version:'2.4.1', ext:'bin'
+                }else{
+                    binary group:'com.google', name:'protoc', version:'2.4.1-fc', ext:'bin'
+                }
             }else{
                 binary group:'com.google', name:'protoc', version:'2.4.1', ext:'exe'
             }

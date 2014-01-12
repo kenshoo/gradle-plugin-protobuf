@@ -7,7 +7,11 @@ class ProtobufConvention {
         protoDirectory = "${project.buildDir.path}/libs"
         if(System.getProperty('os.name').contains('Linux'))
         {
-            protocPath =  "$protoDirectory/protoc-2.4.1.bin"
+            if(System.getProperty('os.version').contains('fc19')){
+                protocPath =  "$protoDirectory/protoc-2.4.1-fc.bin"
+            }else{
+                protocPath =  "$protoDirectory/protoc-2.4.1.bin"
+            }
         }
         else
         {
