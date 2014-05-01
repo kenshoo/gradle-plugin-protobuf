@@ -100,10 +100,11 @@ class ProtobufPlugin implements Plugin<Project> {
     }
 
     private getGeneratedSourceDir(Project project, SourceSet sourceSet) {
-        def generatedSourceDir = 'generated-sources'
-        //if (sourceSet.name != SourceSet.MAIN_SOURCE_SET_NAME)
-        //    generatedSourceDir = "${sourceSet.name}-generated-sources"
-        return "${project.buildDir}/${generatedSourceDir}/${sourceSet.name}"
+        def generatedSourceDir = "${project.buildDir}/generated-sources"
+        if(project.generatedFileDir != null)
+            generatedSourceDir = project.generatedFileDir
+
+        return "${generatedSourceDir}/${sourceSet.name}"
     }
 
 }
