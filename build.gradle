@@ -12,7 +12,6 @@ apply plugin: 'eclipse'
 apply plugin: 'groovy'
 apply plugin: 'maven'
 apply plugin: 'git'
-rootProject.name = 'gradle-plugin-protobuf'
 
 
 group = 'ws.antonov.gradle.plugins'
