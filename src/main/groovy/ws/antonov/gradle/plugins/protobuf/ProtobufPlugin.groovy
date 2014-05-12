@@ -76,7 +76,6 @@ class ProtobufPlugin implements Plugin<Project> {
             String compileJavaTaskName = sourceSet.getCompileTaskName("java");
             Task compileJavaTask = project.tasks.getByName(compileJavaTaskName);
             compileJavaTask.dependsOn(generateJavaTask)
-            project.getTasksByName('cleanIdea',false).each {task -> task.dependsOn(generateJavaTask)}
         }
     }
     
@@ -100,10 +99,11 @@ class ProtobufPlugin implements Plugin<Project> {
     }
 
     private getGeneratedSourceDir(Project project, SourceSet sourceSet) {
-        def generatedSourceDir = 'generated-sources'
-        //if (sourceSet.name != SourceSet.MAIN_SOURCE_SET_NAME)
-        //    generatedSourceDir = "${sourceSet.name}-generated-sources"
-        return "${project.buildDir}/${generatedSourceDir}/${sourceSet.name}"
+        def generatedSourceDir = "${project.buildDir}/generated-sources/${sourceSet.name}"
+        if(project.hasProperty("generatedFileDir"))
+            generatedSourceDir = project.generatedFileDir
+
+        return generatedSourceDir
     }
 
 }
