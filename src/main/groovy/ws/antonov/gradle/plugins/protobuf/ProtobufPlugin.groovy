@@ -73,9 +73,6 @@ class ProtobufPlugin implements Plugin<Project> {
             generateJavaTask.getSource().srcDir project.extractedProtosDir + "/" + sourceSet.getName()
             
             sourceSet.java.srcDir getGeneratedSourceDir(project, sourceSet)
-            String compileJavaTaskName = sourceSet.getCompileTaskName("java");
-            Task compileJavaTask = project.tasks.getByName(compileJavaTaskName);
-            compileJavaTask.dependsOn(generateJavaTask)
         }
     }
     
