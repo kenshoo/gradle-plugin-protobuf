@@ -17,7 +17,7 @@ class ProntobufPluginTest {
     def deps = project.configurations.binary.allDependencies
     if(binary.isLinux){
       deps.toArray()[0].with{
-        assertEquals('protoc-2.4.1',"${binary.executable(project)}".toString())
+        assertEquals('protoc-2.5.0',"${binary.executable(project)}".toString())
       }
     } else {
         assertEquals('protoc',project.configurations.binary.allDependencies.name[0])

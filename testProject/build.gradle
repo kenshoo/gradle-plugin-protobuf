@@ -9,7 +9,7 @@ Running script ${relativePath(buildFile)}
 
 buildscript {
     dependencies {
-        classpath files("../build/libs/gradle-plugin-protobuf-0.8.jar")
+        classpath files("../build/libs/gradle-plugin-protobuf-1.1.5.jar")
     }
 }
 
@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'com.google.protobuf', name: 'protobuf-java', version: '2.4.1'
+    compile group: 'com.google.protobuf', name: 'protobuf-java', version: '2.5.0'
     protobuf files("lib/protos.tar.gz")
     //protobuf files("ext/test1.proto", "ext/test2.proto")
     protobuf fileTree("ext/") {

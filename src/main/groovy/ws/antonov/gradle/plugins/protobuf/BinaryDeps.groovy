@@ -36,12 +36,12 @@ class BinaryDeps {
         project.dependencies {
             if(isLinux){
                 if(!isFedora){
-                    binary group:'com.google', name:'protoc', version:'2.4.1', ext:'bin'
+                    binary group:'com.google', name:'protoc', version:'2.5.0', ext:'bin'
                 }else{
-                    binary group:'com.google', name:'protoc', version:'2.4.1-fc', ext:'bin'
+                    binary group:'com.google', name:'protoc', version:'2.5.0-fc', ext:'bin'
                 }
             }else{
-                binary group:'com.google', name:'protoc', version:'2.4.1', ext:'exe'
+                binary group:'com.google', name:'protoc', version:'2.5.0', ext:'exe'
             }
         }
     }
