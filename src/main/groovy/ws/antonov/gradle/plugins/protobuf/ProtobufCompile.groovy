@@ -1,18 +1,19 @@
 package ws.antonov.gradle.plugins.protobuf
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.Input
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.tasks.TaskAction
 import org.gradle.util.CollectionUtils
-import org.gradle.api.tasks.compile.AbstractCompile;
 
-public class ProtobufCompile extends AbstractCompile {
+public class ProtobufCompile extends DefaultTask {
     @Input
     def includeDirs = []
 
-    public String getProtocPath() {
-        return null
-    }
+    String sourceSetName
+
+    String destinationDir
 
     /**
      * Add a directory to protoc's include path.
@@ -25,14 +26,44 @@ public class ProtobufCompile extends AbstractCompile {
         }
     }
 
-    protected void compile() {
-        getDestinationDir().mkdir()
-        logger.debug "ProtobufCompile using files ${getSource().getFiles()}"
-        def cmd = [ getProtocPath() ]
-        cmd.addAll(getSource().srcDirs*.path.collect {"-I${it}"})
+    @TaskAction
+    def compile() {
+        def plugins = project.convention.plugins.protobuf.protobufCodeGenPlugins
+        def protoc = project.convention.plugins.protobuf.protocPath
+        File destinationDir = project.file(destinationDir)
+        logger.warn "proto destination dir ${destinationDir}"
+        def srcDirs = [project.file("src/${sourceSetName}/proto"), "${project.extractedProtosDir}/${sourceSetName}"]
+
+        destinationDir.mkdirs()
+        def dirs = CollectionUtils.join(" -I", srcDirs)
+        logger.warn "ProtobufCompile using directories ${dirs}"
+        logger.warn "ProtobufCompile using files ${inputs.sourceFiles.files}"
+        def cmd = [ protoc ]
+
+        cmd.addAll(srcDirs.collect {"-I${it}"})
+        //TODO: Figure out how to add variable to a task
         cmd.addAll(includeDirs*.path.collect {"-I${it}"})
-        cmd += "--java_out=${getDestinationDir()}"
-        cmd.addAll getSource().getFiles()
+        cmd += "--java_out=${destinationDir}"
+        // Handle code generation plugins
+        if (plugins) {
+            cmd.addAll(plugins.collect {
+                def name = it
+                if (it.indexOf(":") > 0) {
+                    name = it.split(":")[0]
+                }
+                "--${name}_out=${destinationDir}"
+            })
+            cmd.addAll(plugins.collect {
+                if (it.indexOf(":") > 0) {
+                    def values = it.split(":")
+                    "--plugin=protoc-gen-${values[0]}=${values[1]}"
+                } else {
+                    "--plugin=protoc-gen-${it}=${project.projectDir}/protoc-gen-${it}"
+                }
+            })
+        }
+
+        cmd.addAll inputs.sourceFiles.files
         logger.log(LogLevel.INFO, cmd.toString())
         def output = new StringBuffer()
         Process result = cmd.execute()
