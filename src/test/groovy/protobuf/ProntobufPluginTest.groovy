@@ -12,7 +12,7 @@ class ProntobufPluginTest {
 
   @Test
   void binaryDepsSanity(){
-    Project project = ProjectBuilder.builder().build()
+    Project project = ProjectBuilder.builder().withName("test-project").build()
     binary.applyBinary(project)
     def deps = project.configurations.binary.allDependencies
     if(binary.isLinux){

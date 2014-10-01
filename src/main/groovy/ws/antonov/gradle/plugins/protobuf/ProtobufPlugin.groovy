@@ -1,98 +1,74 @@
 package ws.antonov.gradle.plugins.protobuf
 
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.GradleException
+import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.util.CollectionUtils
 
 class ProtobufPlugin implements Plugin<Project> {
     void apply(final Project project) {
+        def gv = project.gradle.gradleVersion =~ "(\\d*)\\.(\\d*).*"
+        if (!gv || !gv.matches() || gv.group(1) < "1" || (gv.group(1) == "1" && gv.group(2) < "12")) {
+            //throw new UnsupportedVersionException
+            println("You are using Gradle ${project.gradle.gradleVersion}: This version of the protobuf plugin requires minimum Gradle version 1.12")
+        }
+
         project.apply plugin: 'java'
 
         project.convention.plugins.protobuf = new ProtobufConvention(project);
-
-
         def binaryDep = new BinaryDeps()
         binaryDep.applyBinary(project)
 
-        project.sourceSets.all { SourceSet sourceSet ->
-            def generateJavaTaskName = sourceSet.getTaskName('generate', 'proto')
-            ProtobufCompile generateJavaTask = project.tasks.add(generateJavaTaskName, ProtobufCompile)
-            configureForSourceSet project, sourceSet, generateJavaTask
-
-            generateJavaTask.dependsOn(project.getTasksByName('setupBinary',false))
-            
-            def protobufConfigName = (sourceSet.getName().equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "protobuf" : sourceSet.getName() + "Protobuf")
-            project.configurations.add(protobufConfigName) {
-                visible = false
-                transitive = false
-                extendsFrom = []
-            }
-            def extractProtosTaskName = sourceSet.getTaskName('extract', 'proto')
-            def extractProtosTask = project.tasks.add(extractProtosTaskName) {
-                description = "Extracts proto files/dependencies specified by 'protobuf' configuration"
-                actions = [ 
-                {
-                    project.configurations[protobufConfigName].files.each { file ->
-                        if (file.path.endsWith('.proto')) {
-                            ant.copy(
-                                file: file.path,
-                                toDir: project.extractedProtosDir + "/" + sourceSet.getName()
-                            )
-                            //generateJavaTask.getSource().add(project.files(file))
-                        } else if (file.path.endsWith('.jar') || file.path.endsWith('.zip')) {
-                            ant.unzip(src: file.path, dest: project.extractedProtosDir + "/" + sourceSet.getName())
-                        } else {
-                            def compression
-
-                            if (file.path.endsWith('.tar')) {
-                                 compression = 'none'
-                            } else
-                            if (file.path.endsWith('.tar.gz')) {
-                                compression = 'gzip'
-                            } else if (file.path.endsWith('.tar.bz2')) {
-                                compression = 'bzip2'
-                            } else {
-                                throw new GradleException(
-                                    "Unsupported file type (${file.path}); handles only jar, tar, tar.gz & tar.bz2")
-                            }
-
-                            ant.untar(
-                                src: file.path,
-                                dest: project.extractedProtosDir + "/" + sourceSet.getName(),
-                                compression: compression)
-                        }
-                    }
-                } as Action
-                ]
-            }
-            generateJavaTask.dependsOn(extractProtosTask)
-            generateJavaTask.getSource().srcDir project.extractedProtosDir + "/" + sourceSet.getName()
-            
-            sourceSet.java.srcDir getGeneratedSourceDir(project, sourceSet)
+        project.afterEvaluate {
+            addProtoTasks(project)
         }
     }
-    
-    void configureForSourceSet(Project project, final SourceSet sourceSet, ProtobufCompile compile) {
-        def final defaultSource = new DefaultSourceDirectorySet("${sourceSet.displayName} Protobuf source", project.fileResolver);
-        defaultSource.include("**/*.proto")
-        defaultSource.filter.include("**/*.proto")
-        defaultSource.srcDir("src/${sourceSet.name}/proto")
-        compile.conventionMapping.map("classpath") {
-            return sourceSet.getCompileClasspath()
+
+    private addProtoTasks(Project project) {
+        project.sourceSets.all { SourceSet sourceSet ->
+            addTasksToProjectForSourceSet(project, sourceSet)
         }
-        compile.conventionMapping.map("protocPath") {
-            return project.convention.plugins.protobuf.protocPath
+    }
+
+    private def addTasksToProjectForSourceSet(Project project, SourceSet sourceSet) {
+        def protobufConfigName = (sourceSet.getName().equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "protobuf" : sourceSet.getName() + "Protobuf")
+
+        def generateJavaTaskName = sourceSet.getTaskName('generate', 'proto')
+        project.tasks.create(generateJavaTaskName, ProtobufCompile) {
+            description = "Compiles Proto source '${sourceSet.name}:proto'"
+            inputs.source project.fileTree("src/${sourceSet.name}/proto") {include "**/*.proto"}
+            inputs.source project.fileTree("${project.extractedProtosDir}/${sourceSet.name}") {include "**/*.proto"}
+            outputs.dir getGeneratedSourceDir(project, sourceSet)
+            outputs.upToDateWhen {false}
+            sourceSetName = sourceSet.name
+            destinationDir = project.file(getGeneratedSourceDir(project, sourceSet))
         }
-        compile.conventionMapping.map('source') {
-            return defaultSource
+        def generateJavaTask = project.tasks.getByName(generateJavaTaskName)
+
+        project.configurations.create(protobufConfigName) {
+            visible = false
+            transitive = false
+            extendsFrom = []
         }
-        compile.conventionMapping.map('destinationDir') {
-            return new File(getGeneratedSourceDir(project, sourceSet))
+        def extractProtosTaskName = sourceSet.getTaskName('extract', 'proto')
+        project.tasks.create(extractProtosTaskName, ProtobufExtract) {
+            description = "Extracts proto files/dependencies specified by 'protobuf' configuration"
+            //TODO: Figure out why the configuration can't be used as input.  That makes declaring output invalid
+            //inputs.files project.configurations[protobufConfigName].files
+            //outputs.dir "${project.extractedProtosDir}/${sourceSet.name}"
+            extractedProtosDir = project.file("${project.extractedProtosDir}/${sourceSet.name}")
+            configName = protobufConfigName
         }
+        def extractProtosTask = project.tasks.getByName(extractProtosTaskName)
+        generateJavaTask.dependsOn(extractProtosTask)
     }
 
     private getGeneratedSourceDir(Project project, SourceSet sourceSet) {

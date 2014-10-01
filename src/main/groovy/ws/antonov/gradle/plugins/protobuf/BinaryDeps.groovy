@@ -14,6 +14,7 @@ class BinaryDeps {
     }
 
     def applyBinary(project){
+        println "Applying binary to project ${project.name}"
         applyDeps(project)
         project.task([type:Sync],'setupBinary') {
             from project.configurations.binary
@@ -41,7 +42,7 @@ class BinaryDeps {
                     binary group:'com.google', name:'protoc', version:'2.4.1-fc', ext:'bin'
                 }
             }else{
-                binary group:'com.google', name:'protoc', version:'2.4.1', ext:'exe'
+                binary group:'com.google', name:'protoc', version:'2.5.0', ext:'exe'
             }
         }
     }
